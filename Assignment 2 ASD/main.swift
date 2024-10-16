@@ -1,54 +1,86 @@
 import Foundation
 
-class Tree<node: Equatable> {
+class Node<node: Equatable> {
     var value: node
-    var left: Tree?
-    var right: Tree?
+    var left: Node?
+    var right: Node?
 
     init(_ value: node) {
         self.value = value
         self.left = nil
         self.right = nil
     }
+}
 
-    func search(_ neededNode: node) -> Tree? {
-        if value == neededNode {
-            return self
+class Tree<node: Equatable> {
+    var root: Node<node>?
+
+    init() {
+        self.root = nil
+    }
+
+    func search(_ neededNode: node) -> Node<node>? {
+        return searchHelper(root, neededNode)
+    }
+
+    private func searchHelper(_ current: Node<node>?, _ neededNode: node) -> Node<node>? {
+        guard let currentNode = current else { return nil }
+
+        if currentNode.value == neededNode {
+            return currentNode
         }
-        if let leftResult = left?.search(neededNode) {
+
+        if let leftResult = searchHelper(currentNode.left, neededNode) {
             return leftResult
         }
-        if let rightResult = right?.search(neededNode) {
+
+        if let rightResult = searchHelper(currentNode.right, neededNode) {
             return rightResult
         }
+
         return nil
     }
 
     func printNodes() {
-        Swift.print(value)
-        left?.printNodes()
-        right?.printNodes()
+        Helper(root)
+    }
+
+    private func Helper(_ current: Node<node>?) {
+        guard let currentNode = current else { return }
+
+        Swift.print(currentNode.value)
+        Helper(currentNode.left)
+        Helper(currentNode.right)
     }
 
     func depth() -> Int {
-        let leftDepth = left?.depth() ?? 0
-        let rightDepth = right?.depth() ?? 0
+        return depthHelper(root)
+    }
+
+    private func depthHelper(_ current: Node<node>?) -> Int {
+        guard let currentNode = current else { return 0 }
+
+        let leftDepth = depthHelper(currentNode.left)
+        let rightDepth = depthHelper(currentNode.right)
         return max(leftDepth, rightDepth) + 1
     }
 }
 
-func addNode(root: Tree<String>, parentValue: String, newValue: String, isLeft: Bool) {
-    if let parentNode = root.search(parentValue) {
+func addNode(root: Tree<String>, parentValue: String?, newValue: String, isLeft: Bool) {
+    if root.root == nil {
+        root.root = Node(newValue)
+        print("Successfully added the root node!")
+    } else if let parentValue = parentValue, let parentNode = root.search(parentValue) {
         if isLeft {
             if parentNode.left == nil {
-                parentNode.left = Tree(newValue)
+                parentNode.left = Node(newValue)
                 print("Successfully added left child!")
             } else {
                 print("Left child already exists. Choose another action.")
             }
         } else {
             if parentNode.right == nil {
-                parentNode.right = Tree(newValue)
+                parentNode.right = Node(newValue)
                 print("Successfully added right child!")
             } else {
                 print("Right child already exists. Choose another action.")
@@ -60,7 +92,7 @@ func addNode(root: Tree<String>, parentValue: String, newValue: String, isLeft: 
 }
 
 func main() {
-    let root = Tree("Root")
+    let tree = Tree<String>()
     var isRunning = true
 
     while isRunning {
@@ -72,14 +104,21 @@ func main() {
         if let choice = readLine() {
             switch choice {
             case "1":
-                print("Enter the name of a parent node")
-                if let parentValue = readLine() {
-                    print("Enter the name of a child node")
+                if tree.root == nil {
+                    print("Enter the name of the root node:")
                     if let newValue = readLine() {
-                        print("Do you want it to be a left or a right node? (L/R)")
-                        if let side = readLine()?.uppercased(), side == "L" || side == "R" {
-                            let isLeft = side == "L"
-                            addNode(root: root, parentValue: parentValue, newValue: newValue, isLeft: isLeft)
+                        addNode(root: tree, parentValue: nil, newValue: newValue, isLeft: true)
+                    }
+                } else {
+                    print("Enter the name of a parent node")
+                    if let parentValue = readLine() {
+                        print("Enter the name of a child node")
+                        if let newValue = readLine() {
+                            print("Do you want it to be a left or a right node? (L/R)")
+                            if let side = readLine()?.uppercased(), side == "L" || side == "R" {
+                                let isLeft = side == "L"
+                                addNode(root: tree, parentValue: parentValue, newValue: newValue, isLeft: isLeft)
+                            }
                         }
                     }
                 }
@@ -87,18 +126,18 @@ func main() {
             case "2":
                 print("Enter node value to search:")
                 if let searchValue = readLine() {
-                    if let result = root.search(searchValue) {
-                        print("This node was found")
+                    if let result = tree.search(searchValue) {
+                        print("Node \(result.value) was found.")
                     } else {
                         print("This node was not found")
                     }
                 }
 
             case "3":
-                root.printNodes()
+                tree.printNodes()
 
             case "4":
-                print("Depth of this tree is \(root.depth())")
+                print("Depth of this tree is \(tree.depth())")
 
             default:
                 print("Wrong command")
