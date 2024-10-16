@@ -1,15 +1,60 @@
 import Foundation
 
+class MyData {
+    private var storage: Storage
+
+    init(array: [Int] = []) {
+        storage = Storage(array: array)
+    }
+
+    private func UniqueStorage() {
+        if !isKnownUniquelyReferenced(&storage) {
+            storage = Storage(array: storage.array)
+        }
+    }
+
+    var array: [Int] {
+        get { return storage.array }
+        set {
+            UniqueStorage()
+            storage.array = newValue
+        }
+    }
+
+    func getArray() -> [Int] {
+        return storage.array
+    }
+
+    func append(_ value: Int) {
+        UniqueStorage()
+        storage.array.append(value)
+    }
+
+    func printData() {
+        print(storage.array)
+    }
+
+    private class Storage {
+        var array: [Int]
+
+        init(array: [Int]) {
+            self.array = array
+        }
+    }
+}
+
 class Node<node: Equatable> {
     var value: node
     var left: Node?
     var right: Node?
     var neighbors: [Reference<Node>] = []
+    var data: MyData
 
     init(_ value: node) {
         self.value = value
         self.left = nil
         self.right = nil
+        self.data = MyData()
     }
 
     func addNeighbor(_ node: Node) {
@@ -25,6 +70,14 @@ class Node<node: Equatable> {
                 print("Neighbor is absent")
             }
         }
+    }
+
+    func printData() {
+        data.printData()
+    }
+
+    func addData(_ value: Int) {
+        data.append(value)
     }
 }
 
@@ -117,7 +170,7 @@ func addNode(root: Tree<String>, parentValue: String?, newValue: String, isLeft:
 
 func main() {
     let tree = Tree<String>()
-    let isRunning = true
+    var isRunning = true
 
     while isRunning {
         print("1. Add a node",
@@ -125,7 +178,9 @@ func main() {
               "3. Print the whole tree",
               "4. Calculate the depth",
               "5. Add a neighbor",
-              "6. Print all neighbors")
+              "6. Print all neighbors",
+              "7. Add data to a node",
+              "8. Print data for a node")
 
         if let choice = readLine() {
             switch choice {
@@ -182,6 +237,27 @@ func main() {
                 print("Enter the node to print the neighbors for:")
                 if let nodeValue = readLine(), let node = tree.search(nodeValue) {
                     node.printNeighbors()
+                } else {
+                    print("This node was not found.")
+                }
+
+            case "7":
+                print("Enter the node to add data to:")
+                if let nodeValue = readLine(), let node = tree.search(nodeValue) {
+                    print("Enter an integer to add to this node's data:")
+                    if let dataValue = readLine(), let intValue = Int(dataValue) {
+                        node.addData(intValue)
+                    } else {
+                        print("Invalid integer.")
+                    }
+                } else {
+                    print("This node was not found.")
+                }
+
+            case "8":
+                print("Enter the node to print the data for:")
+                if let nodeValue = readLine(), let node = tree.search(nodeValue) {
+                    node.printData()
                 } else {
                     print("This node was not found.")
                 }
