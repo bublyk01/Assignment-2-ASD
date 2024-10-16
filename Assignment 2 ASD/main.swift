@@ -4,11 +4,35 @@ class Node<node: Equatable> {
     var value: node
     var left: Node?
     var right: Node?
+    var neighbors: [Reference<Node>] = []
 
     init(_ value: node) {
         self.value = value
         self.left = nil
         self.right = nil
+    }
+
+    func addNeighbor(_ node: Node) {
+        let weakNode = Reference(value: node)
+        neighbors.append(weakNode)
+    }
+
+    func printNeighbors() {
+        for ref in neighbors {
+            if let node = ref.value {
+                print(node.value)
+            } else {
+                print("Neighbor is absent")
+            }
+        }
+    }
+}
+
+class Reference<T: AnyObject> {
+    weak var value: T?
+
+    init(value: T) {
+        self.value = value
     }
 }
 
@@ -93,14 +117,16 @@ func addNode(root: Tree<String>, parentValue: String?, newValue: String, isLeft:
 
 func main() {
     let tree = Tree<String>()
-    var isRunning = true
+    let isRunning = true
 
     while isRunning {
         print("1. Add a node",
               "2. Search for a node",
               "3. Print the whole tree",
-              "4. Calculate the depth")
-        
+              "4. Calculate the depth",
+              "5. Add a neighbor",
+              "6. Print all neighbors")
+
         if let choice = readLine() {
             switch choice {
             case "1":
@@ -138,6 +164,27 @@ func main() {
 
             case "4":
                 print("Depth of this tree is \(tree.depth())")
+
+            case "5":
+                print("Enter the node to add a neighbor to:")
+                if let parentValue = readLine(), let parentNode = tree.search(parentValue) {
+                    print("Enter the name of the neighbor node:")
+                    if let neighborValue = readLine(), let neighborNode = tree.search(neighborValue) {
+                        parentNode.addNeighbor(neighborNode)
+                    } else {
+                        print("Neighbor node not found.")
+                    }
+                } else {
+                    print("Parent node not found.")
+                }
+
+            case "6":
+                print("Enter the node to print the neighbors for:")
+                if let nodeValue = readLine(), let node = tree.search(nodeValue) {
+                    node.printNeighbors()
+                } else {
+                    print("This node was not found.")
+                }
 
             default:
                 print("Wrong command")
